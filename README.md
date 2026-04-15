@@ -1,2 +1,2 @@
 # Questions
-Some easy programming questions that decided to make on my spare time
+Some easy programming questions that i decided to make on my spare time.
