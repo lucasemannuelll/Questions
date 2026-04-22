@@ -1,7 +1,34 @@
 SELECT
-  id,
-  filename,
-  (heard + (partial * 0.4) - (skipped * 0.8)) / appearances AS score
+    id,
+    filename,
+    appearances,
+    heard,
+    partial,
+    skipped,
+    ROUND(CAST(heard AS REAL) / appearances * 100, 1) AS heard_pct,
+    ROUND(CAST(skipped AS REAL) / appearances * 100, 1) AS skipped_pct,
+    ROUND(total_sec / 60.0, 1) AS total_minutes,
+    datetime(last_played, 'unixepoch', 'localtime') AS last_played_human,
+    ROUND(
+        (
+            heard +
+            (partial * 0.45) -
+            (skipped * 0.90) +
+            CASE
+                WHEN appearances >= 10 THEN 0.50
+                WHEN appearances >= 5 THEN 0.25
+                ELSE 0
+            END
+        ) / appearances,
+        3
+    ) AS score,
+    CASE
+        WHEN appearances < 3 THEN 'low data'
+        WHEN (heard + partial * 0.45 - skipped * 0.90) / appearances >= 0.75 THEN 'favorite'
+        WHEN (heard + partial * 0.45 - skipped * 0.90) / appearances >= 0.35 THEN 'liked'
+        WHEN (heard + partial * 0.45 - skipped * 0.90) / appearances >= 0.00 THEN 'neutral'
+        ELSE 'avoid'
+    END AS verdict
 FROM songs
 WHERE appearances > 0
-ORDER BY score DESC;
+ORDER BY score DESC, heard DESC, total_sec DESC;
